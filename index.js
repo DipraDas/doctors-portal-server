@@ -22,7 +22,7 @@ async function run() {
             console.log(date);
             const query = {};
             const options = await appointmentOptionCollection.find(query).toArray();
-            const bookingQuery = {appointmentDate: date}
+            const bookingQuery = { appointmentDate: date }
             const alreadyBooked = await bookingsCollection.find(bookingQuery).toArray();
             options.forEach(option => {
                 const optionBooked = alreadyBooked.filter(book => book.treatment === option.name);
@@ -34,11 +34,23 @@ async function run() {
             res.send(options);
         });
 
+        app.get('/v2/appo')
+
+
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
+            const query = {
+                email: booking.email,
+                appointmentDate: booking.appointmentDate,
+                treatment: booking.treatment
+            }
+            const alreadyBook = await bookingsCollection.find(query).toArray();
+            if(alreadyBook.length){
+                const message = `You already have a booking on ${booking.appointmentDate}`;
+                return res.send({acknowledged: false, message})
+            }
             const result = await bookingsCollection.insertOne(booking);
             res.send(result);
-
         })
     }
     finally {
