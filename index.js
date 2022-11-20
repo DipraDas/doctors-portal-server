@@ -8,7 +8,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.slxro.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
@@ -19,7 +18,6 @@ async function run() {
 
         app.get('/appointmentOptions', async (req, res) => {
             const date = req.query.date;
-            console.log(date);
             const query = {};
             const options = await appointmentOptionCollection.find(query).toArray();
             const bookingQuery = { appointmentDate: date }
@@ -29,13 +27,9 @@ async function run() {
                 const bookedSlots = optionBooked.map(book => book.slot);
                 const remainingSlots = option.slots.filter(slot => !bookedSlots.includes(slot));
                 option.slots = remainingSlots;
-                console.log(option.name, bookedSlots, remainingSlots.length);
             })
             res.send(options);
         });
-
-        app.get('/v2/appo')
-
 
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
