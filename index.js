@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -22,7 +22,7 @@ function verifyJWT(req, res, next) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
         if (err) {
-            return res.status(403).send({message: 'Forbidden Access'})
+            return res.status(403).send({ message: 'Forbidden Access' })
         }
         req.decoded = decoded;
         next();
@@ -53,8 +53,8 @@ async function run() {
         app.get('/bookings', verifyJWT, async (req, res) => {
             const email = req.query.email;
             const decodedEmail = req.decoded.email;
-            if(email !== decodedEmail){
-                return res.status(403).send({message: 'Forbidden Access'})
+            if (email !== decodedEmail) {
+                return res.status(403).send({ message: 'Forbidden Access' })
             }
             const query = { email: email };
             const bookings = await bookingsCollection.find(query).toArray();
@@ -93,6 +93,26 @@ async function run() {
             const result = await usersCollection.insertOne(user);
             res.send(result);
         })
+
+        app.get('/users', async (req, res) => {
+            const query = {};
+            const users = await usersCollection.find(query).toArray();
+            res.send(users);
+        })
+
+        app.put('/users/admin/:id', async(req,res) => {
+            const id = req.params.id;
+            const filter = {_id: ObjectId(id)};
+            const options = {upsert: true};
+            const updatedDoc ={
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        })
+
     }
     finally {
 
